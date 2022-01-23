@@ -92,7 +92,7 @@ class SplashActivity :Activity() {
                         // permission not granted
                         Toast.makeText(
                             applicationContext,
-                            "Kindly Grant Permission to procceed",
+                            "Kindly Grant Permission to proceed",
                             Toast.LENGTH_SHORT
                         ).show()
                     }.create().show()

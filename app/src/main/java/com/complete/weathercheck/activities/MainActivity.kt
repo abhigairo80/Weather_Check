@@ -279,7 +279,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onFailure(t: Throwable) {
                     hideProgressDialog() // Hides the progress dialog
-                    Log.e("Errorrrrr", t.message.toString())
+                    Log.e("error", t.message.toString())
                 }
             })
         } else {
@@ -335,7 +335,7 @@ class MainActivity : AppCompatActivity() {
 
             // For loop to get the required data. And all are populated in the UI.
             for (z in weatherList.weather.indices) {
-                Log.i("NAMEEEEEEEE", weatherList.weather[z].main)
+                Log.i("name", weatherList.weather[z].main)
 
                 tv_tv_main.text = weatherList.weather[z].main
                 tv_main_description.text = weatherList.weather[z].description
@@ -350,7 +350,7 @@ class MainActivity : AppCompatActivity() {
                 tv_sunrise_time.text = unixTime(weatherList.sys.sunrise.toLong())
                 tv_sunset_time.text = unixTime(weatherList.sys.sunset.toLong())
 
-                // Here we update the main icon
+
                 when (weatherList.weather[z].icon) {
                     "01d" -> iv_main.setImageResource(R.drawable.sunny)
                     "02d" -> iv_main.setImageResource(R.drawable.cloud)
@@ -376,7 +376,7 @@ class MainActivity : AppCompatActivity() {
      * Function is used to get the temperature unit value.
      */
     private fun getUnit(value: String): String {
-        Log.i("unitttttt", value)
+        Log.i("unit", value)
         var value = "°C"
         if ("US" == value || "LR" == value || "MM" == value) {
             value = "°F"
