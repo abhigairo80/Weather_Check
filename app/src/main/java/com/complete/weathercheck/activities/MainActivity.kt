@@ -43,21 +43,12 @@ import com.google.android.gms.location.LocationServices
 
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
-
-    // A global variable for Progress Dialog
     private var mProgressDialog: Dialog? = null
-
-    // A global variable for Current Latitude
     private var mLatitude: Double = 0.0
-    // A global variable for Current Longitude
     private var mLongitude: Double = 0.0
-
-    // TODO (STEP 1: Add a variable for SharedPreferences)
-    // START
-    // A global variable for the SharedPreferences
     private lateinit var mSharedPreferences: SharedPreferences
-
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,10 +57,7 @@ class MainActivity : AppCompatActivity() {
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         mSharedPreferences = getSharedPreferences(Constants.PREFERENCE_NAME, Context.MODE_PRIVATE)
-
         setupUI()
-        // END
-
         if (!isLocationEnabled()) {
             Toast.makeText(
                 this,
@@ -77,7 +65,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
 
-            // This will redirect you to settings from where you need to turn on the location provider.
             val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             startActivity(intent)
         } else {
@@ -113,11 +100,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
+
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
@@ -128,12 +114,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * A function which is used to verify that the location or GPS is enable or not of the user's device.
-     */
     private fun isLocationEnabled(): Boolean {
 
-        // This provides access to the system location services.
         val locationManager: LocationManager =
             getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
@@ -141,9 +123,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /**
-     * A function used to show the alert dialog when the permissions are denied and need to allow it from settings app info.
-     */
     private fun showRationalDialogForPermissions() {
         AlertDialog.Builder(this)
             .setMessage("It Looks like you have turned off permissions required for this feature. It can be enabled under Application Settings")
@@ -164,10 +143,6 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
             }.show()
     }
-
-    /**
-     * A function to request the current location. Using the fused location provider client.
-     */
     @SuppressLint("MissingPermission")
     private fun requestLocationData() {
 
@@ -182,10 +157,6 @@ class MainActivity : AppCompatActivity() {
             )
         }
     }
-
-    /**
-     * A location callback object of fused location provider client where we will get the current location details.
-     */
     private val mLocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
 
@@ -198,41 +169,23 @@ class MainActivity : AppCompatActivity() {
             getLocationWeatherDetails()
         }
     }
-
-    /**
-     * Function is used to get the weather details of the current location based on the latitude longitude
-     */
     private fun getLocationWeatherDetails() {
-
         if (Constants.isNetworkAvailable(this@MainActivity)) {
-
-            /**
-             * Add the built-in converter factory first. This prevents overriding its
-             * behavior but also ensures correct behavior when using converters that consume all types.
-             */
             val retrofit: Retrofit = Retrofit.Builder()
-                // API base URL.
+
                 .baseUrl(Constants.BASE_URL)
-                /** Add converter factory for serialization and deserialization of objects. */
-                /**
-                 * Create an instance using a default {@link Gson} instance for conversion. Encoding to JSON and
-                 * decoding from JSON (when no charset is specified by a header) will use UTF-8.
-                 */
+
                 .addConverterFactory(GsonConverterFactory.create())
-                /** Create the Retrofit instances. */
+
                 .build()
-
-
             val service: WeatherService =
                 retrofit.create(WeatherService::class.java)
 
             val listCall: Call<WeatherResponse> = service.getWeather(
                 mLatitude, mLongitude, Constants.METRIC_UNIT, Constants.APP_ID
             )
+            showCustomProgressDialog()
 
-            showCustomProgressDialog() // Used to show the progress dialog
-
-            // Callback methods are executed using the Retrofit callback executor.
             listCall.enqueue(object : Callback<WeatherResponse> {
                 @RequiresApi(Build.VERSION_CODES.N)
                 @SuppressLint("SetTextI18n")
@@ -241,26 +194,21 @@ class MainActivity : AppCompatActivity() {
                     retrofit: Retrofit
                 ) {
 
-                    // Check weather the response is success or not.
                     if (response.isSuccess) {
 
-                        hideProgressDialog() // Hides the progress dialog
+                        hideProgressDialog()
 
-                        /** The de-serialized response body of a successful response. */
                         val weatherList: WeatherResponse = response.body()
                         Log.i("Response Result", "$weatherList")
 
-                        // TODO (STEP 4: Here we convert the response object to string and store the string in the SharedPreference.)
-                        // START
-                        // Here we have converted the model class in to Json String to store it in the SharedPreferences.
                         val weatherResponseJsonString = Gson().toJson(weatherList)
-                        // Save the converted string to shared preferences
+
                         val editor = mSharedPreferences.edit()
                         editor.putString(Constants.WEATHER_RESPONSE_DATA, weatherResponseJsonString)
                         editor.apply()
 
                         setupUI()
-                        // END
+
                     } else {
 
                         when (response.code()) {
@@ -291,40 +239,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Method is used to show the Custom Progress Dialog.
-     */
     private fun showCustomProgressDialog() {
         mProgressDialog = Dialog(this)
 
-        /*Set the screen content from a layout resource.
-        The resource will be inflated, adding all top-level views to the screen.*/
         mProgressDialog!!.setContentView(R.layout.dialog_custom_progress)
 
-        //Start the dialog and display it on screen.
         mProgressDialog!!.show()
     }
 
-    /**
-     * This function is used to dismiss the progress dialog if it is visible to user.
-     */
+
     private fun hideProgressDialog() {
         if (mProgressDialog != null) {
             mProgressDialog!!.dismiss()
         }
     }
 
-    /**
-     * Function is used to set the result in the UI elements.
-     */
+
     @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("SetTextI18n")
     private fun setupUI() {
-        // TODO (STEP 6: Here we get the stored response from
-        //  SharedPreferences and again convert back to data object
-        //  to populate the data in the UI.)
-        // START
-        // Here we have got the latest stored response from the SharedPreference and converted back to the data model object.
+
         val weatherResponseJsonString =
             mSharedPreferences.getString(Constants.WEATHER_RESPONSE_DATA, "")
 
@@ -333,7 +267,7 @@ class MainActivity : AppCompatActivity() {
             val weatherList =
                 Gson().fromJson(weatherResponseJsonString, WeatherResponse::class.java)
 
-            // For loop to get the required data. And all are populated in the UI.
+
             for (z in weatherList.weather.indices) {
                 Log.i("name", weatherList.weather[z].main)
 
@@ -369,12 +303,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        // END
+
     }
 
-    /**
-     * Function is used to get the temperature unit value.
-     */
     private fun getUnit(value: String): String {
         Log.i("unit", value)
         var value = "°C"
@@ -384,9 +315,6 @@ class MainActivity : AppCompatActivity() {
         return value
     }
 
-    /**
-     * The function is used to get the formatted time based on the Format and the LOCALE we pass to it.
-     */
     private fun unixTime(timex: Long): String? {
         val date = Date(timex * 1000L)
         @SuppressLint("SimpleDateFormat") val sdf =
